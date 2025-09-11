@@ -1,0 +1,28 @@
+@import '../../styles/variables';
+.inventory-list {
+    h2 {
+        font-weight: bold;
+        color: $primary-color;
+    }
+    .table-custom {
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+        th {
+            background-color: $primary-color;
+            color: white;
+            text-align: center;
+        }
+        td {
+            vertical-align: middle;
+            text-align: center;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    }
+    .btn-sm {
+        font-size: 0.85rem;
+    }
+}

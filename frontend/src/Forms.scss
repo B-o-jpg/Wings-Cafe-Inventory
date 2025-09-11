@@ -1,0 +1,23 @@
+@import './variables';
+.form-control,
+.form-select {
+    border-radius: 4px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    &:focus {
+        border-color: $secondary-color;
+        box-shadow: 0 0 0 0.2rem rgba($secondary-color, .25);
+    }
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    &:hover {
+        background-color: darken(#6c757d, 5%);
+        border-color: darken(#6c757d, 5%);
+    }
+}
+
+.modal-content {
+    border-radius: 8px;
+}

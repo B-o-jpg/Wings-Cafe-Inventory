@@ -1,0 +1,27 @@
+[{
+        "id": "1",
+        "name": "Chicken Wings",
+        "description": "Spicy grilled wings",
+        "category": "Food",
+        "price": 15.99,
+        "quantity": 100
+    },
+
+    {
+        "id": 2,
+        "name": "Lemonade",
+        "description": "Ice Cold Lemonade ",
+        "category": "Drinks",
+        "price": 3.5,
+        "quantity": 20
+    },
+    {
+        "id": 1757616626729,
+        "name": "Apple",
+        "description": "Fresh Organic Apples",
+        "category": "Fruits",
+        "price": 5.5,
+        "quantity": 178
+    }
+
+]

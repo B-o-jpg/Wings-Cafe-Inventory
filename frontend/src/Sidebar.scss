@@ -1,0 +1,118 @@
+@import './variables';
+.sidebar {
+    width: $sidebar-width;
+    min-width: $sidebar-width;
+    height: 100vh;
+    background-color: $primary-color;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: $spacer-lg;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    &.collapsed {
+        width: 80px;
+        min-width: 80px;
+    }
+    .sidebar-header {
+        text-align: center;
+        margin-bottom: $spacer-lg;
+        h3 {
+            color: $text-color-light;
+            font-size: 1.4rem;
+        }
+    }
+    .nav-link {
+        padding: $spacer-sm $spacer-lg;
+        display: flex;
+        align-items: center;
+        color: $text-color-light;
+        font-size: 1rem;
+        transition: background-color 0.2s, color 0.2s;
+        &:hover {
+            background-color: darken($primary-color, 10%);
+            color: $secondary-color;
+        }
+        &.active {
+            background-color: $secondary-color;
+            color: $text-color-light;
+            font-weight: bold;
+        }
+        .icon {
+            margin-right: $spacer-sm;
+            font-size: 1.2rem;
+        }
+        &.collapsed {
+            justify-content: center;
+            .icon {
+                margin: 0;
+            }
+            span {
+                display: none;
+            }
+        }
+    }
+    .sidebar-footer {
+        margin-top: auto;
+        padding: $spacer-lg $spacer-sm;
+        color: lighten($text-color-light, 20%);
+        font-size: 0.8rem;
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: -$sidebar-width;
+        z-index: 2000;
+        &.open {
+            left: 0;
+        }
+    }
+}
+
+// src/components/Sidebar/Sidebar.scss
+.sidebar {
+    width: 220px;
+    background-color: #343a40;
+    color: rgb(75, 70, 70);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    .sidebar-header {
+        padding: 1rem;
+        background-color: #212529;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        border-bottom: 1px solid #495057;
+    }
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        li {
+            a {
+                display: flex;
+                align-items: center;
+                padding: 1rem;
+                color: #adb5bd;
+                text-decoration: none;
+                transition: background 0.2s;
+                &:hover {
+                    background-color: #495057;
+                    color: white;
+                }
+                svg {
+                    margin-right: 10px;
+                }
+            }
+            &.active a {
+                background-color: #007bff;
+                color: white;
+            }
+        }
+    }
+}
