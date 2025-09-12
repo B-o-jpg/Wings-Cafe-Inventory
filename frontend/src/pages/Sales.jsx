@@ -4,7 +4,7 @@ import { Container, Row, Col, Form, Button, Table, Spinner, Alert } from 'react-
 import { fetchProducts, createTransaction, fetchTransactions } from '../services/api';
 import './Sales.scss';
 
-const Sales = () => {
+const Sales = ({ onSaleRecorded }) => {
   const [products, setProducts] = useState([]);
   const [salesHistory, setSalesHistory] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -34,7 +34,13 @@ const Sales = () => {
     const loadSales = async () => {
       try {
         const txs = await fetchTransactions();
-        setSalesHistory(txs);
+        setSalesHistory(txs.map(tx => ({
+          id: tx.id,
+          productId: tx.productId,
+          productName: tx.productName || 'Unknown',
+          quantity: tx.quantity,
+          date: tx.timestamp || tx.date || new Date().toISOString()
+        })));
       } catch (err) {
         setError('Failed to load sales history: ' + err.message);
       } finally {
@@ -70,14 +76,22 @@ const Sales = () => {
 
       // Append transaction to salesHistory
       const productName = updatedProduct.name;
-      setSalesHistory((prev) => [
-        { id: Date.now(), productId: updatedProduct.id, productName, quantity: qtyNum, date: new Date().toISOString() },
-        ...prev,
-      ]);
+      const newSale = {
+        id: Date.now(),
+        productId: updatedProduct.id,
+        productName,
+        quantity: qtyNum,
+        date: new Date().toISOString(),
+      };
+      setSalesHistory((prev) => [newSale, ...prev]);
 
       // Reset form
       setSelectedProductId('');
       setQuantity('');
+
+      // Notify parent to refresh totals
+      if (typeof onSaleRecorded === 'function') onSaleRecorded();
+
     } catch (err) {
       setError('Error recording sale: ' + err.message);
     }

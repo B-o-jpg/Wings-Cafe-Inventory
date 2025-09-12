@@ -96,55 +96,40 @@ export async function deleteProduct(id) {
  * @returns Updated product
  */
 export async function createTransaction(productId, type, quantity) {
-    if (!productId || !type || quantity <= 0) throw new Error('Invalid transaction parameters');
-
-    // 1️⃣ Fetch product
     const prodRes = await fetch(`${API_BASE}/inventory/${productId}`);
     if (!prodRes.ok) throw new Error('Product not found');
     const product = await prodRes.json();
 
-    // 2️⃣ Calculate new quantity
-    const newQuantity =
-        type === 'add' ?
+    const newQuantity = type === 'add' ?
         Number(product.quantity) + Number(quantity) :
         Math.max(Number(product.quantity) - Number(quantity), 0);
 
-    // 3️⃣ Update product
     const updateRes = await fetch(`${API_BASE}/inventory/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({...product, quantity: newQuantity }),
+        body: JSON.stringify({...product, quantity: newQuantity })
     });
     if (!updateRes.ok) throw new Error('Failed to update stock');
+
     const updatedProduct = await updateRes.json();
 
-    // 4️⃣ Record transaction
-    const txnRes = await fetch(`${API_BASE}/transactions`, {
+    await fetch(`${API_BASE}/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             productId: Number(productId),
             type,
             quantity: Number(quantity),
-            timestamp: new Date().toISOString(),
-        }),
+            timestamp: new Date().toISOString()
+        })
     });
-    if (!txnRes.ok) console.warn('Transaction not recorded:', await txnRes.text());
 
-    return updatedProduct;
-}
+    return updatedProduct; // contains id, name, quantity
 
+} // Fetch all transactions
 export async function fetchTransactions() {
-    try {
-        const res = await fetch(`${API_BASE}/transactions`);
-        if (!res.ok) {
-            const text = await res.text();
-            throw new Error(text || 'Failed to fetch transactions');
-        }
-        const data = await res.json();
-        return Array.isArray(data) ? data : [];
-    } catch (err) {
-        console.error('fetchTransactions error:', err);
-        return [];
-    }
+    const res = await fetch(`${API_BASE}/transactions`);
+    if (!res.ok) throw new Error('Failed to fetch transactions');
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
 }

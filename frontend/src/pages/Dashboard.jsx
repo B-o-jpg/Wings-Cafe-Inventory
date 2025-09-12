@@ -1,100 +1,118 @@
 // src/pages/Dashboard.jsx
-import { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Spinner } from 'react-bootstrap';
-import { fetchProducts, fetchCustomers } from '../services/api';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import './Dasboard.scss';
-import './Tables.scss';
 
+import React, { useEffect, useState } from 'react';
+import { Container, Row, Col, Card, Spinner } from 'react-bootstrap';
+import { fetchProducts, fetchCustomers, fetchTransactions } from '../services/api';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const Dashboard = () => {
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const prods = await fetchProducts();
-        const custs = await fetchCustomers();
-        setProducts(prods);
-        setCustomers(custs);
+        const [prods, custs, txns] = await Promise.all([
+          fetchProducts(),
+          fetchCustomers(),
+          fetchTransactions()
+        ]);
+
+        setProducts(prods || []);
+        setCustomers(custs || []);
+        setTransactions(txns || []);
       } catch (err) {
         console.error('Dashboard load error:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     loadData();
   }, []);
 
   if (loading) {
     return (
-      <Container className="mt-4">
+      <Container className="mt-4 text-center">
         <Spinner animation="border" />
       </Container>
     );
   }
 
-  // Compute stats
-  const totalProducts = products.length;
-  const totalCustomers = customers.length;
-  const lowStockCount = products.filter(p => p.quantity < 5).length;
-  const totalStockQty = products.reduce((sum, p) => sum + p.quantity, 0);
+  // Prepare chart data: stock vs sold
+  const chartData = products.map(product => {
+    const soldQty = transactions
+      .filter(txn => txn.productId === product.id && txn.type === 'deduct')
+      .reduce((sum, txn) => sum + Number(txn.quantity), 0);
 
-  // Products by category for bar chart
-  const categoryMap = {};
-  products.forEach(p => {
-    if (p.category in categoryMap) categoryMap[p.category]++;
-    else categoryMap[p.category] = 1;
+    return {
+      name: product.name,
+      Stock: Number(product.quantity),
+      Sold: soldQty
+    };
   });
-  const categoryData = Object.entries(categoryMap).map(([category, count]) => ({ category, count }));
 
   return (
     <Container fluid className="mt-4">
       <Row className="mb-4">
-        <Col md={3}><Card className="stat-card"><Card.Body><h5>Total Products</h5><h2>{totalProducts}</h2></Card.Body></Card></Col>
-        <Col md={3}><Card className="stat-card"><Card.Body><h5>Total Customers</h5><h2>{totalCustomers}</h2></Card.Body></Card></Col>
-        <Col md={3}><Card className="stat-card"><Card.Body><h5>Low Stock Items</h5><h2>{lowStockCount}</h2></Card.Body></Card></Col>
-        <Col md={3}><Card className="stat-card"><Card.Body><h5>Total Stock Qty</h5><h2>{totalStockQty}</h2></Card.Body></Card></Col>
+        <Col><h2>Dashboard</h2></Col>
       </Row>
 
-      <Row>
-        <Col md={6}>
-          <Card className="mb-4">
-            <Card.Header>Products by Category</Card.Header>
-            <Card.Body style={{ height: '300px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryData}>
-                  <XAxis dataKey="category" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+      <Row className="mb-4">
+        <Col md={3}>
+          <Card className="text-center">
+            <Card.Body>
+              <h5>Total Products</h5>
+              <h2>{products.length}</h2>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={6}>
-          <Card className="mb-4">
-            <Card.Header>Stock Distribution (Pie)</Card.Header>
+        <Col md={3}>
+          <Card className="text-center">
+            <Card.Body>
+              <h5>Total Customers</h5>
+              <h2>{customers.length}</h2>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className="text-center">
+            <Card.Body>
+              <h5>Total Sales</h5>
+              <h2>{transactions.filter(tx => tx.type === 'deduct').length}</h2>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card className="text-center">
+            <Card.Body>
+              <h5>Low Stock Items</h5>
+              <h2>{products.filter(p => Number(p.quantity) < 5).length}</h2>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col>
+          <Card>
+            <Card.Header>Stock vs Sold Products</Card.Header>
             <Card.Body style={{ height: '300px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    dataKey="count"
-                    nameKey="category"
-                    outerRadius={100}
-                    fill="#82ca9d"
-                  >
-                    {categoryData.map((entry, idx) => (
-                      <Cell key={idx} fill={["#0088FE", "#00C49F", "#FFBB28", "#FF8042"][idx % 4]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              {chartData.length === 0 ? (
+                <p className="text-center">No products available</p>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <CartesianGrid stroke="#eee" />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="Stock" stroke="#82ca9d" />
+                    <Line type="monotone" dataKey="Sold" stroke="#8884d8" />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </Card.Body>
           </Card>
         </Col>
