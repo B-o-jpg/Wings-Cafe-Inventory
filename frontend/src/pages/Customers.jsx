@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Spinner, Modal, Form } from 'react-bootstrap';
 import { FaEye, FaTrash } from 'react-icons/fa';
-
+import './Tables.scss';
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,4 +134,4 @@ const Customers = () => {
   );
 };
 
-export default Customers;
+export default Customers; 

@@ -7,6 +7,8 @@ import Customers from './pages/Customers';
 import Reports from './pages/Reports';
 import Layout from './components/Layout';
 import CustomersList from './components/CustomerList';
+import './App.scss';
+
 function App() {
   return (
     <Router>
@@ -19,9 +21,7 @@ function App() {
           <Route path="/sales" element={<Sales />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/customers/list" element={<CustomersList />} />
-
           <Route path="/reports" element={<Reports />} />
-          {/* optionally: 404 */}
           <Route path="*" element={<div>Page not found</div>} />
         </Routes>
       </Layout>

@@ -1,1 +1,17 @@
-[]
+[{
+        "id": 1,
+        "productId": 1,
+        "productName": "Nik Naks",
+        "quantity": 10,
+        "date": "2025-09-10T12:00:00Z",
+        "type": "deduct"
+    },
+    {
+        "id": 2,
+        "productId": 2,
+        "productName": "Coke",
+        "quantity": 5,
+        "date": "2025-09-11T15:30:00Z",
+        "type": "deduct"
+    }
+]

@@ -1,7 +1,7 @@
 // src/pages/Reports.jsx
 
 import { useState, useEffect } from 'react';
-import { Container, Card, Row, Col, Spinner, Button } from 'react-bootstrap';
+import { Container, Card, Row, Col, Spinner, Button, Alert } from 'react-bootstrap';
 import { fetchProducts, fetchCustomers } from '../services/api';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -9,33 +9,51 @@ const Reports = () => {
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const load = async () => {
+    const loadData = async () => {
       try {
         const prods = await fetchProducts();
         const custs = await fetchCustomers();
-        setProducts(prods);
+
+        // Ensure quantities are numbers
+        const normalizedProducts = prods.map(p => ({
+          ...p,
+          quantity: Number(p.quantity),
+        }));
+
+        setProducts(normalizedProducts);
         setCustomers(custs);
       } catch (err) {
         console.error('Reports load error:', err);
+        setError('Failed to load products or customers: ' + err.message);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    load();
+
+    loadData();
   }, []);
 
   if (loading) {
     return (
-      <Container className="mt-4">
+      <Container className="mt-4 text-center">
         <Spinner animation="border" />
       </Container>
     );
   }
 
-  // Example: product quantity trend data (you might need to keep history in backend to supply this)
-  // For demonstration, create dummy time series data
-  const dummyData = [
+  if (error) {
+    return (
+      <Container className="mt-4">
+        <Alert variant="danger">{error}</Alert>
+      </Container>
+    );
+  }
+
+  // Dummy stock trend data (replace with backend history if available)
+  const stockTrendData = [
     { date: '2025-09-01', stock: 100 },
     { date: '2025-09-05', stock: 80 },
     { date: '2025-09-10', stock: 60 },
@@ -53,7 +71,7 @@ const Reports = () => {
         <Card.Header>Stock Level Over Time (Example)</Card.Header>
         <Card.Body style={{ height: '300px' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={dummyData}>
+            <LineChart data={stockTrendData}>
               <XAxis dataKey="date" />
               <YAxis />
               <CartesianGrid stroke="#eee" />
@@ -66,9 +84,17 @@ const Reports = () => {
 
       <Card className="mb-4">
         <Card.Body>
-          <p><strong>Total Products:</strong> {products.length}</p>
-          <p><strong>Total Customers:</strong> {customers.length}</p>
-          <p><strong>Low Stock Items:</strong> {products.filter(p => p.quantity < 5).length}</p>
+          <Row>
+            <Col md={4}>
+              <p><strong>Total Products:</strong> {products.length}</p>
+            </Col>
+            <Col md={4}>
+              <p><strong>Total Customers:</strong> {customers.length}</p>
+            </Col>
+            <Col md={4}>
+              <p><strong>Low Stock Items:</strong> {products.filter(p => p.quantity < 5).length}</p>
+            </Col>
+          </Row>
         </Card.Body>
       </Card>
 

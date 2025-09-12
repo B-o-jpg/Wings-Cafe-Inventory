@@ -1,27 +1,29 @@
 [{
-        "id": "1",
-        "name": "Chicken Wings",
-        "description": "Spicy grilled wings",
-        "category": "Food",
-        "price": 15.99,
-        "quantity": 100
+        "id": 1,
+        "name": "Nik Naks",
+        "category": "Snacks",
+        "price": 1.5,
+        "quantity": 50
     },
-
     {
         "id": 2,
-        "name": "Lemonade",
-        "description": "Ice Cold Lemonade ",
+        "name": "Coke",
         "category": "Drinks",
-        "price": 3.5,
-        "quantity": 20
+        "price": 20,
+        "quantity": 200
     },
     {
-        "id": 1757616626729,
+        "id": 3,
         "name": "Apple",
-        "description": "Fresh Organic Apples",
         "category": "Fruits",
         "price": 5.5,
         "quantity": 178
+    },
+    {
+        "id": 4,
+        "name": "Pap + Chakalala + Spicy Pork with sauce",
+        "category": "Food",
+        "price": 80,
+        "quantity": 100
     }
-
 ]

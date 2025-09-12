@@ -1,0 +1,59 @@
+@import './Variables';
+.dashboard-cards {
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        background-color: white;
+        color: $text-color-dark;
+        &.highlight {
+            background-color: $secondary-color;
+            color: $text-color-light;
+        }
+        .card-body {
+            padding: $spacer-lg;
+            h5 {
+                font-size: 1rem;
+                margin-bottom: $spacer-sm;
+            }
+            h2 {
+                font-size: 2rem;
+                margin: 0;
+            }
+        }
+    }
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    /* sidebar + main */
+}
+
+.sidebar {
+    background: #1f2937;
+    min-height: 100vh;
+}
+
+.dashboard-container {
+    padding: 20px;
+}
+
+.layout {
+    display: flex; // Sidebar + Dashboard side by side
+}
+
+.sidebar {
+    width: 250px; // adjust to your sidebar’s real width
+    background: #1f2937;
+    min-height: 100vh; // full height
+    position: fixed; // keeps it stuck on the left
+    top: 0;
+    left: 0;
+}
+
+.dashboard-container {
+    margin-left: 250px; // same as sidebar width
+    flex: 1;
+    padding: 20px;
+}

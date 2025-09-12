@@ -1,136 +1,83 @@
-const express = require('express');
-const cors = require('cors');
 const fs = require('fs');
-const path = require('path');
-
+const express = require('express');
 const app = express();
-app.use(cors());
+const PORT = 5000;
+
 app.use(express.json());
 
-const productsFile = path.join(__dirname, 'data', 'products.json');
+const INVENTORY_FILE = './inventory.json';
+const TRANSACTIONS_FILE = './transactions.json';
 
-// Helper to read and write JSON file
-function readProducts() {
-    const content = fs.readFileSync(productsFile, 'utf8');
-    return JSON.parse(content);
+function readJSON(file) {
+    return JSON.parse(fs.readFileSync(file, 'utf-8'));
 }
 
-function writeProducts(data) {
-    fs.writeFileSync(productsFile, JSON.stringify(data, null, 2));
+function writeJSON(file, data) {
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
-// CRUD for products
-app.get('/api/products', (req, res) => {
-    const products = readProducts();
+// Get all products
+app.get('/api/inventory', (req, res) => {
+    const products = readJSON(INVENTORY_FILE);
     res.json(products);
 });
 
-app.post('/api/products', (req, res) => {
-    const products = readProducts();
-    const newProduct = {
-        id: Date.now().toString(),
-        name: req.body.name,
-        description: req.body.description,
-        category: req.body.category,
-        price: req.body.price,
-        quantity: req.body.quantity
-    };
-    products.push(newProduct);
-    writeProducts(products);
-    res.status(201).json(newProduct);
-});
-
-app.put('/api/products/:id', (req, res) => {
-    const products = readProducts();
-    const index = products.findIndex(p => p.id === req.params.id);
-    if (index === -1) {
-        return res.status(404).json({ error: 'Product not found' });
-    }
-    const updated = {...products[index], ...req.body };
-    products[index] = updated;
-    writeProducts(products);
-    res.json(updated);
-});
-
-app.delete('/api/products/:id', (req, res) => {
-    let products = readProducts();
-    const index = products.findIndex(p => p.id === req.params.id);
-    if (index === -1) {
-        return res.status(404).json({ error: 'Product not found' });
-    }
-    const deleted = products.splice(index, 1);
-    writeProducts(products);
-    res.json({ message: 'Deleted successfully' });
-});
-
-// Stock transactions endpoint
-app.post('/api/products/:id/transaction', (req, res) => {
-    // body: { type: 'add'|'deduct', qty: number }
-    const { type, qty } = req.body;
-    const products = readProducts();
-    const index = products.findIndex(p => p.id === req.params.id);
-    if (index === -1) {
-        return res.status(404).json({ error: 'Product not found' });
-    }
-    let product = products[index];
-    if (type === 'deduct') {
-        if (product.quantity < qty) {
-            return res.status(400).json({ error: 'Insufficient stock' });
-        }
-        product.quantity -= qty;
-    } else if (type === 'add') {
-        product.quantity += qty;
-    } else {
-        return res.status(400).json({ error: 'Invalid transaction type' });
-    }
-    products[index] = product;
-    writeProducts(products);
+// ✅ Get single product by ID
+app.get('/api/inventory/:id', (req, res) => {
+    const products = readJSON(INVENTORY_FILE);
+    const product = products.find(p => p.id === Number(req.params.id));
+    if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json(product);
 });
 
-// maybe routes for sales, customers ... you can implement later similarly
+// Update product
+app.put('/api/inventory/:id', (req, res) => {
+    const products = readJSON(INVENTORY_FILE);
+    const index = products.findIndex(p => p.id === Number(req.params.id));
+    if (index === -1) return res.status(404).json({ message: 'Product not found' });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Backend running on port ${PORT}`);
+    products[index] = {...products[index], ...req.body };
+    writeJSON(INVENTORY_FILE, products);
+    res.json(products[index]);
+});
+
+// Transactions
+app.get('/api/transactions', (req, res) => {
+    const txs = readJSON(TRANSACTIONS_FILE);
+    res.json(txs);
 });
 
 app.post('/api/transactions', (req, res) => {
     const { productId, type, quantity } = req.body;
+    if (!productId || !type || quantity <= 0) return res.status(400).json({ message: 'Invalid transaction' });
 
-    if (!productId || !type || quantity === undefined) {
-        return res.status(400).json({ error: 'Missing required fields' });
-    }
+    const products = readJSON(INVENTORY_FILE);
+    const product = products.find(p => p.id === Number(productId));
+    if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    const products = readJSON(PRODUCTS_FILE);
-    const product = products.find(p => p.id.toString() === productId.toString());
+    let newQuantity = product.quantity;
+    if (type === 'add') newQuantity += quantity;
+    else if (type === 'deduct') newQuantity -= quantity;
+    if (newQuantity < 0) newQuantity = 0;
 
-    if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
-    }
+    // Update product
+    product.quantity = newQuantity;
+    writeJSON(INVENTORY_FILE, products);
 
-    if (type === 'deduct') {
-        if (product.quantity < quantity) {
-            return res.status(400).json({ error: 'Not enough stock' });
-        }
-        product.quantity -= quantity;
-    } else if (type === 'add') {
-        product.quantity += quantity;
-    }
-
-    writeJSON(PRODUCTS_FILE, products);
-
-    const transactions = readJSON(TRANSACTIONS_FILE);
-    const newTransaction = {
-        id: Date.now().toString(),
-        productId: product.id.toString(),
+    // Record transaction
+    const txs = readJSON(TRANSACTIONS_FILE);
+    const newTx = {
+        id: Date.now(),
+        productId: product.id,
         productName: product.name,
-        type,
         quantity,
+        type,
         date: new Date().toISOString()
     };
-    transactions.push(newTransaction);
-    writeJSON(TRANSACTIONS_FILE, transactions);
+    txs.push(newTx);
+    writeJSON(TRANSACTIONS_FILE, txs);
 
-    return res.status(201).json(newTransaction); // ✅ JSON response
+    res.json(newTx);
 });
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

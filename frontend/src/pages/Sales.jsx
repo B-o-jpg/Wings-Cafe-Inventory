@@ -1,8 +1,8 @@
 // src/pages/Sales.jsx
-
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Table, Spinner, Alert } from 'react-bootstrap';
 import { fetchProducts, createTransaction, fetchTransactions } from '../services/api';
+import './Sales.scss';
 
 const Sales = () => {
   const [products, setProducts] = useState([]);
@@ -14,7 +14,7 @@ const Sales = () => {
   const [selectedProductId, setSelectedProductId] = useState('');
   const [quantity, setQuantity] = useState('');
 
-  // Load products on mount
+  // Load products
   useEffect(() => {
     const loadProducts = async () => {
       try {
@@ -22,13 +22,14 @@ const Sales = () => {
         setProducts(prods);
       } catch (err) {
         setError('Failed to load products: ' + err.message);
+      } finally {
+        setLoadingProducts(false);
       }
-      setLoadingProducts(false);
     };
     loadProducts();
   }, []);
 
-  // Load sales history on mount
+  // Load sales history
   useEffect(() => {
     const loadSales = async () => {
       try {
@@ -36,8 +37,9 @@ const Sales = () => {
         setSalesHistory(txs);
       } catch (err) {
         setError('Failed to load sales history: ' + err.message);
+      } finally {
+        setLoadingSales(false);
       }
-      setLoadingSales(false);
     };
     loadSales();
   }, []);
@@ -53,29 +55,25 @@ const Sales = () => {
 
     const qtyNum = parseInt(quantity, 10);
     if (isNaN(qtyNum) || qtyNum <= 0) {
-      setError('Quantity must be a positive number');
+      setError('Quantity must be a positive number.');
       return;
     }
 
     try {
-      // call backend
-      const newSale = await createTransaction({
-        productId: selectedProductId,
-        type: 'deduct',
-        quantity: qtyNum,
-      });
+      // Send numeric ID to API
+      const updatedProduct = await createTransaction(Number(selectedProductId), 'deduct', qtyNum);
 
-      // Update product list locally
-      setProducts(prevProducts =>
-        prevProducts.map(p =>
-          p.id.toString() === newSale.productId.toString()
-            ? { ...p, quantity: p.quantity - newSale.quantity }
-            : p
-        )
+      // Update local product list
+      setProducts((prev) =>
+        prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
       );
 
-      // Insert the new sale at top of salesHistory
-      setSalesHistory(prev => [newSale, ...prev]);
+      // Append transaction to salesHistory
+      const productName = updatedProduct.name;
+      setSalesHistory((prev) => [
+        { id: Date.now(), productId: updatedProduct.id, productName, quantity: qtyNum, date: new Date().toISOString() },
+        ...prev,
+      ]);
 
       // Reset form
       setSelectedProductId('');
@@ -100,7 +98,7 @@ const Sales = () => {
                 <Form.Label>Product</Form.Label>
                 <Form.Select
                   value={selectedProductId}
-                  onChange={e => setSelectedProductId(e.target.value)}
+                  onChange={(e) => setSelectedProductId(e.target.value)}
                 >
                   <option value="">-- Select Product --</option>
                   {products.map((p) => (
@@ -118,12 +116,14 @@ const Sales = () => {
                   type="number"
                   min="1"
                   value={quantity}
-                  onChange={e => setQuantity(e.target.value)}
+                  onChange={(e) => setQuantity(e.target.value)}
                 />
               </Form.Group>
             </Col>
             <Col md={2}>
-              <Button variant="success" type="submit">Record Sale</Button>
+              <Button variant="success" type="submit">
+                Record Sale
+              </Button>
             </Col>
           </Row>
         </Form>
@@ -145,7 +145,9 @@ const Sales = () => {
           <tbody>
             {salesHistory.length === 0 ? (
               <tr>
-                <td colSpan="4" className="text-center">No sales recorded yet.</td>
+                <td colSpan="4" className="text-center">
+                  No sales recorded yet.
+                </td>
               </tr>
             ) : (
               salesHistory.map((sale, idx) => (

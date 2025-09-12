@@ -1,9 +1,11 @@
 // src/pages/Dashboard.jsx
-
 import { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Spinner } from 'react-bootstrap';
 import { fetchProducts, fetchCustomers } from '../services/api';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import './Dasboard.scss';
+import './Tables.scss';
+
 
 const Dashboard = () => {
   const [products, setProducts] = useState([]);

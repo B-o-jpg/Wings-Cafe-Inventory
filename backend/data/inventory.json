@@ -1,23 +1,29 @@
-[
-  {
-    "id": 1,
-    "name": "Chicken Wings",
-    "category": "Food",
-    "price": 12.99,
-    "quantity": 10
-  },
-  {
-    "id": 2,
-    "name": "Lemonade",
-    "category": "Drinks",
-    "price": 3.5,
-    "quantity": 20
-  },
-  {
-    "id": 1757616626729,
-    "name": "Apple",
-    "category": "Fruits",
-    "price": 5.5,
-    "quantity": 178
-  }
+[{
+        "id": 1,
+        "name": "Nik Naks",
+        "category": "Snacks",
+        "price": 1.5,
+        "quantity": 50
+    },
+    {
+        "id": 2,
+        "name": "Coke",
+        "category": "Drinks",
+        "price": 20,
+        "quantity": 200
+    },
+    {
+        "id": 3,
+        "name": "Apple",
+        "category": "Fruits",
+        "price": 5.5,
+        "quantity": 178
+    },
+    {
+        "id": 4,
+        "name": "Pap + Chakalala + Spicy Pork with sauce",
+        "category": "Food",
+        "price": 80,
+        "quantity": 100
+    }
 ]

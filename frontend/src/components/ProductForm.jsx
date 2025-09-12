@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Form, Button } from 'react-bootstrap';
-
+import './Forms.scss';
 export default function ProductForm({ product, onSubmit, onCancel }) {
   const [form, setForm] = useState({
     name: '',

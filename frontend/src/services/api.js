@@ -3,7 +3,6 @@ const API_BASE = 'http://localhost:5000/api';
 /* =========================
    ✅ Customers
 ========================= */
-
 export async function fetchCustomers() {
     const res = await fetch(`${API_BASE}/customers`);
     if (!res.ok) throw new Error('Failed to fetch customers');
@@ -31,9 +30,7 @@ export async function updateCustomer(id, customer) {
 }
 
 export async function deleteCustomer(id) {
-    const res = await fetch(`${API_BASE}/customers/${id}`, {
-        method: 'DELETE',
-    });
+    const res = await fetch(`${API_BASE}/customers/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete customer');
     return res.json();
 }
@@ -41,10 +38,15 @@ export async function deleteCustomer(id) {
 /* =========================
    ✅ Products / Inventory
 ========================= */
-
 export async function fetchProducts() {
     const res = await fetch(`${API_BASE}/inventory`);
     if (!res.ok) throw new Error('Failed to fetch products');
+    return res.json();
+}
+
+export async function fetchProductById(id) {
+    const res = await fetch(`${API_BASE}/inventory/${id}`);
+    if (!res.ok) throw new Error('Product not found');
     return res.json();
 }
 
@@ -52,7 +54,11 @@ export async function createProduct(product) {
     const res = await fetch(`${API_BASE}/inventory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(product),
+        body: JSON.stringify({
+            ...product,
+            price: Number(product.price),
+            quantity: Number(product.quantity),
+        }),
     });
     if (!res.ok) throw new Error('Failed to create product');
     return res.json();
@@ -62,41 +68,83 @@ export async function updateProduct(id, product) {
     const res = await fetch(`${API_BASE}/inventory/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(product),
+        body: JSON.stringify({
+            ...product,
+            price: Number(product.price),
+            quantity: Number(product.quantity),
+        }),
     });
     if (!res.ok) throw new Error('Failed to update product');
     return res.json();
 }
 
 export async function deleteProduct(id) {
-    const res = await fetch(`${API_BASE}/inventory/${id}`, {
-        method: 'DELETE',
-    });
+    const res = await fetch(`${API_BASE}/inventory/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete product');
     return res.json();
 }
 
 /* =========================
-   ✅ Transactions / Sales
+   ✅ Transactions / Stock
 ========================= */
 
-export async function fetchTransactions() {
-    const res = await fetch(`${API_BASE}/transactions`);
-    if (!res.ok) throw new Error('Failed to fetch transactions');
-    return res.json();
-}
+/**
+ * Create a stock transaction (add/deduct)
+ * @param {string | number} productId
+ * @param {'add' | 'deduct'} type
+ * @param {number} quantity
+ * @returns Updated product
+ */
+export async function createTransaction(productId, type, quantity) {
+    if (!productId || !type || quantity <= 0) throw new Error('Invalid transaction parameters');
 
-export async function createTransaction(transaction) {
-    const res = await fetch(`${API_BASE}/transactions`, {
+    // 1️⃣ Fetch product
+    const prodRes = await fetch(`${API_BASE}/inventory/${productId}`);
+    if (!prodRes.ok) throw new Error('Product not found');
+    const product = await prodRes.json();
+
+    // 2️⃣ Calculate new quantity
+    const newQuantity =
+        type === 'add' ?
+        Number(product.quantity) + Number(quantity) :
+        Math.max(Number(product.quantity) - Number(quantity), 0);
+
+    // 3️⃣ Update product
+    const updateRes = await fetch(`${API_BASE}/inventory/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({...product, quantity: newQuantity }),
+    });
+    if (!updateRes.ok) throw new Error('Failed to update stock');
+    const updatedProduct = await updateRes.json();
+
+    // 4️⃣ Record transaction
+    const txnRes = await fetch(`${API_BASE}/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(transaction),
+        body: JSON.stringify({
+            productId: Number(productId),
+            type,
+            quantity: Number(quantity),
+            timestamp: new Date().toISOString(),
+        }),
     });
+    if (!txnRes.ok) console.warn('Transaction not recorded:', await txnRes.text());
 
-    if (!res.ok) {
-        const text = await res.text(); // Capture raw error text
-        throw new Error(`Error recording sale: ${text}`);
+    return updatedProduct;
+}
+
+export async function fetchTransactions() {
+    try {
+        const res = await fetch(`${API_BASE}/transactions`);
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || 'Failed to fetch transactions');
+        }
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+    } catch (err) {
+        console.error('fetchTransactions error:', err);
+        return [];
     }
-
-    return res.json();
 }
