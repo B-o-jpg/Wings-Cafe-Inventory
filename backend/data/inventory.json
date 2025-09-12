@@ -1,29 +1,37 @@
-[{
-        "id": 1,
-        "name": "Nik Naks",
-        "category": "Snacks",
-        "price": 1.5,
-        "quantity": 50
-    },
-    {
-        "id": 2,
-        "name": "Coke",
-        "category": "Drinks",
-        "price": 20,
-        "quantity": 200
-    },
-    {
-        "id": 3,
-        "name": "Apple",
-        "category": "Fruits",
-        "price": 5.5,
-        "quantity": 178
-    },
-    {
-        "id": 4,
-        "name": "Pap + Chakalala + Spicy Pork with sauce",
-        "category": "Food",
-        "price": 80,
-        "quantity": 100
-    }
+[
+  {
+    "id": 1,
+    "name": "Nik Naks",
+    "category": "Snacks",
+    "price": 1.5,
+    "quantity": 50
+  },
+  {
+    "id": 2,
+    "name": "Coke",
+    "category": "Drinks",
+    "price": 20,
+    "quantity": 200
+  },
+  {
+    "id": 3,
+    "name": "Apple",
+    "category": "Fruits",
+    "price": 5.5,
+    "quantity": 178
+  },
+  {
+    "id": 4,
+    "name": "Pap + Chakalala + Spicy Pork with sauce",
+    "category": "Food",
+    "price": 80,
+    "quantity": 100
+  },
+  {
+    "id": 1757688445306,
+    "name": "Pin Pop",
+    "category": "Snacks",
+    "price": 1.5,
+    "quantity": 200
+  }
 ]
