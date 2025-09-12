@@ -1,8 +1,9 @@
-const fs = require('fs');
-const express = require('express');
-const app = express();
-const PORT = 5000;
-
+const cors = require('cors');
+app.use(cors({
+    origin: 'https://wings-cafe-inventory-qdwp.onrender.com',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 
 const INVENTORY_FILE = './inventory.json';
