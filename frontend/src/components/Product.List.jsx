@@ -1,17 +1,9 @@
-
 import { Table, Button } from 'react-bootstrap';
-
 export default function ProductList({ products, onEdit, onDelete }) {
   return (
     <Table striped bordered hover responsive>
       <thead>
-        <tr>
-          <th>Name</th>
-          <th>Category</th>
-          <th>Price</th>
-          <th>Quantity</th>
-          <th>Actions</th>
-        </tr>
+        <tr><th>Name</th><th>Category</th><th>Price</th><th>Quantity</th><th>Actions</th></tr>
       </thead>
       <tbody>
         {products.map(p => (

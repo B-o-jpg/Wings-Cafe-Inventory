@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Spinner, Modal, Form } from 'react-bootstrap';
 import { FaEye, FaTrash } from 'react-icons/fa';
+import axios from 'axios'; // ✅ import axios
 import './Tables.scss';
+
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,22 +12,32 @@ const Customers = () => {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
 
+  // ✅ Fetch customers from backend
   useEffect(() => {
-    const dummyCustomers = [
-      { id: 1, name: 'Boitumelo Mpelane', email: 'boitumelompelane7@gmail.com', phone: '+266 56534015', totalOrders: 17 },
-      { id: 2, name: 'Lineo Nkeane', email: 'lineonkeane4@gmail.com', phone: '+266 62098192', totalOrders: 5 },
-      { id: 3, name: 'Nthati Bolae', email: 'mamoshanyanabolae9@gmail.com', phone: '+266 5948 9625', totalOrders: 1 },
-    ];
+    const fetchCustomers = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/customers"); 
+        setCustomers(res.data);
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setCustomers(dummyCustomers);
-    setLoading(false);
+    fetchCustomers();
   }, []);
 
   const handleView = (id) => alert(`Viewing customer ${id}`);
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Delete this customer?')) {
-      setCustomers(customers.filter(c => c.id !== id));
+      try {
+        await axios.delete(`http://localhost:5000/api/customers/${id}`);
+        setCustomers(customers.filter(c => c.id !== id));
+      } catch (error) {
+        console.error("Error deleting customer:", error);
+      }
     }
   };
 
@@ -34,17 +46,19 @@ const Customers = () => {
     setShowModal(true);
   };
 
-  const handleAddCustomer = (e) => {
+  const handleAddCustomer = async (e) => {
     e.preventDefault();
-    const newCustomer = {
-      id: Date.now(),
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      totalOrders: 0,
-    };
-    setCustomers([...customers, newCustomer]);
-    setShowModal(false);
+    try {
+      const res = await axios.post("http://localhost:5000/api/customers", {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      });
+      setCustomers([...customers, res.data]); // ✅ Add new customer from backend response
+      setShowModal(false);
+    } catch (error) {
+      console.error("Error adding customer:", error);
+    }
   };
 
   return (
@@ -77,7 +91,7 @@ const Customers = () => {
                 <td>{customer.name}</td>
                 <td>{customer.email}</td>
                 <td>{customer.phone}</td>
-                <td>{customer.totalOrders}</td>
+                <td>{customer.totalOrders || 0}</td>
                 <td>
                   <Button variant="info" size="sm" className="me-2" onClick={() => handleView(customer.id)}>
                     <FaEye /> View
@@ -92,6 +106,7 @@ const Customers = () => {
         </Table>
       )}
 
+      {/* Add Customer Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Add Customer</Modal.Title>
@@ -134,4 +149,4 @@ const Customers = () => {
   );
 };
 
-export default Customers; 
+export default Customers;
